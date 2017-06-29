@@ -159,6 +159,11 @@ namespace SpeccyEngine
             
         }
 
+
+
+
+
+
         public void PrintChar(SpeccyFontChar Char, SpeccyColor ForeColor, SpeccyColor BackColor, int X, int Y, SpeccyMode Mode)
         {
             if (X > width || Y > height)
@@ -359,6 +364,373 @@ namespace SpeccyEngine
             }
 
         }
+        
+        public void PrintChar(SpeccyFontChar Char, SpeccyColor ForeColor, int X, int Y, SpeccyMode Mode)
+        {
+            if (X > width || Y > height)
+                return;
+
+            int baseY = Y * 8;
+            var map = Char.Data;
+
+            int row = 0;
+
+            switch (Mode)
+            {
+                case SpeccyMode.AND:
+
+                    for (int y = baseY; y < baseY + 8; y++)
+                        pixels[X, y] &= map[row++];
+
+                    break;
+
+                case SpeccyMode.OR:
+
+                    for (int y = baseY; y < baseY + 8; y++)
+                        pixels[X, y] |= map[row++];
+
+                    break;
+
+                case SpeccyMode.XOR:
+
+                    for (int y = baseY; y < baseY + 8; y++)
+                        pixels[X, y] ^= map[row++];
+
+                    break;
+
+                default:
+
+                    for (int y = baseY; y < baseY + 8; y++)
+                        pixels[X, y] = map[row++];
+
+                    break;
+
+            }
+            
+            attributes[X, Y, 1] = ForeColor;
+        }
+
+        public void PrintChar(SpeccyFontChar Char, SpeccyColor ForeColor, int X, int Y, SpeccyMode Mode, int XShift, int YShift, bool ExpandAttributes)
+        {
+            if (X > width || Y > height)
+                return;
+
+            int baseY = Y * 8 + YShift;
+            int maxY = Math.Min(height * 8, baseY + 8);
+
+            var map = Char.Data;
+
+            int row = 0;
+
+            bool xFits = X + 1 < width || XShift == 0;
+            bool yFits = Y < height - 1 || YShift == 0;
+
+            switch (Mode)
+            {
+                case SpeccyMode.AND:
+
+                    if (XShift != 0)
+                    {
+                        if (xFits)
+                        {
+
+                            for (int y = baseY; y < maxY; y++)
+                            {
+                                pixels[X, y] &= (byte)(map[row] >> XShift);
+                                pixels[X + 1, y] &= (byte)(map[row++] << 8 - XShift);
+                            }
+                        }
+                        else
+                        {
+                            for (int y = baseY; y < maxY; y++)
+                                pixels[X, y] &= (byte)(map[row++] >> XShift);
+                        }
+                    }
+                    else
+                    {
+                        for (int y = baseY; y < maxY; y++)
+                            pixels[X, y] &= map[row++];
+                    }
+
+                    break;
+
+                case SpeccyMode.OR:
+
+                    if (XShift != 0)
+                    {
+                        if (xFits)
+                        {
+
+                            for (int y = baseY; y < maxY; y++)
+                            {
+                                pixels[X, y] |= (byte)(map[row] >> XShift);
+                                pixels[X + 1, y] |= (byte)(map[row++] << 8 - XShift);
+                            }
+                        }
+                        else
+                        {
+                            for (int y = baseY; y < maxY; y++)
+                                pixels[X, y] |= (byte)(map[row++] >> XShift);
+                        }
+                    }
+                    else
+                    {
+                        for (int y = baseY; y < maxY; y++)
+                            pixels[X, y] |= map[row++];
+                    }
+
+                    break;
+
+                case SpeccyMode.XOR:
+
+                    if (XShift != 0)
+                    {
+                        if (xFits)
+                        {
+
+                            for (int y = baseY; y < maxY; y++)
+                            {
+                                pixels[X, y] ^= (byte)(map[row] >> XShift);
+                                pixels[X + 1, y] ^= (byte)(map[row++] << 8 - XShift);
+                            }
+                        }
+                        else
+                        {
+                            for (int y = baseY; y < maxY; y++)
+                                pixels[X, y] ^= (byte)(map[row++] >> XShift);
+                        }
+                    }
+                    else
+                    {
+                        for (int y = baseY; y < maxY; y++)
+                            pixels[X, y] ^= map[row++];
+                    }
+
+                    break;
+
+                default:
+
+                    if (XShift != 0)
+                    {
+                        if (xFits)
+                        {
+
+                            for (int y = baseY; y < maxY; y++)
+                            {
+                                pixels[X, y] = (byte)(map[row] >> XShift);
+                                pixels[X + 1, y] = (byte)(map[row++] << 8 - XShift);
+                            }
+                        }
+                        else
+                        {
+                            for (int y = baseY; y < maxY; y++)
+                                pixels[X, y] = (byte)(map[row++] >> XShift);
+                        }
+                    }
+                    else
+                    {
+                        for (int y = baseY; y < maxY; y++)
+                            pixels[X, y] = map[row++];
+                    }
+
+                    break;
+
+            }
+            
+            attributes[X, Y, 1] = ForeColor;
+
+            if (ExpandAttributes)
+            {
+                if (XShift != 0 && xFits)
+                {
+                    attributes[X + 1, Y, 1] = ForeColor;
+                }
+
+                if (YShift != 0 && yFits)
+                {
+                    attributes[X, Y + 1, 1] = ForeColor;
+                }
+
+                if (XShift != 0 && YShift != 0 && xFits && yFits)
+                {
+                    attributes[X + 1, Y + 1, 1] = ForeColor;
+                }
+            }
+
+        }
+        
+        public void PrintChar(SpeccyFontChar Char, int X, int Y, SpeccyMode Mode)
+        {
+            if (X > width || Y > height)
+                return;
+
+            int baseY = Y * 8;
+            var map = Char.Data;
+
+            int row = 0;
+
+            switch (Mode)
+            {
+                case SpeccyMode.AND:
+
+                    for (int y = baseY; y < baseY + 8; y++)
+                        pixels[X, y] &= map[row++];
+
+                    break;
+
+                case SpeccyMode.OR:
+
+                    for (int y = baseY; y < baseY + 8; y++)
+                        pixels[X, y] |= map[row++];
+
+                    break;
+
+                case SpeccyMode.XOR:
+
+                    for (int y = baseY; y < baseY + 8; y++)
+                        pixels[X, y] ^= map[row++];
+
+                    break;
+
+                default:
+
+                    for (int y = baseY; y < baseY + 8; y++)
+                        pixels[X, y] = map[row++];
+
+                    break;
+
+            }
+            
+        }
+
+        public void PrintChar(SpeccyFontChar Char, int X, int Y, SpeccyMode Mode, int XShift, int YShift, bool ExpandAttributes)
+        {
+            if (X > width || Y > height)
+                return;
+
+            int baseY = Y * 8 + YShift;
+            int maxY = Math.Min(height * 8, baseY + 8);
+
+            var map = Char.Data;
+
+            int row = 0;
+
+            bool xFits = X + 1 < width || XShift == 0;
+            bool yFits = Y < height - 1 || YShift == 0;
+
+            switch (Mode)
+            {
+                case SpeccyMode.AND:
+
+                    if (XShift != 0)
+                    {
+                        if (xFits)
+                        {
+
+                            for (int y = baseY; y < maxY; y++)
+                            {
+                                pixels[X, y] &= (byte)(map[row] >> XShift);
+                                pixels[X + 1, y] &= (byte)(map[row++] << 8 - XShift);
+                            }
+                        }
+                        else
+                        {
+                            for (int y = baseY; y < maxY; y++)
+                                pixels[X, y] &= (byte)(map[row++] >> XShift);
+                        }
+                    }
+                    else
+                    {
+                        for (int y = baseY; y < maxY; y++)
+                            pixels[X, y] &= map[row++];
+                    }
+
+                    break;
+
+                case SpeccyMode.OR:
+
+                    if (XShift != 0)
+                    {
+                        if (xFits)
+                        {
+
+                            for (int y = baseY; y < maxY; y++)
+                            {
+                                pixels[X, y] |= (byte)(map[row] >> XShift);
+                                pixels[X + 1, y] |= (byte)(map[row++] << 8 - XShift);
+                            }
+                        }
+                        else
+                        {
+                            for (int y = baseY; y < maxY; y++)
+                                pixels[X, y] |= (byte)(map[row++] >> XShift);
+                        }
+                    }
+                    else
+                    {
+                        for (int y = baseY; y < maxY; y++)
+                            pixels[X, y] |= map[row++];
+                    }
+
+                    break;
+
+                case SpeccyMode.XOR:
+
+                    if (XShift != 0)
+                    {
+                        if (xFits)
+                        {
+
+                            for (int y = baseY; y < maxY; y++)
+                            {
+                                pixels[X, y] ^= (byte)(map[row] >> XShift);
+                                pixels[X + 1, y] ^= (byte)(map[row++] << 8 - XShift);
+                            }
+                        }
+                        else
+                        {
+                            for (int y = baseY; y < maxY; y++)
+                                pixels[X, y] ^= (byte)(map[row++] >> XShift);
+                        }
+                    }
+                    else
+                    {
+                        for (int y = baseY; y < maxY; y++)
+                            pixels[X, y] ^= map[row++];
+                    }
+
+                    break;
+
+                default:
+
+                    if (XShift != 0)
+                    {
+                        if (xFits)
+                        {
+
+                            for (int y = baseY; y < maxY; y++)
+                            {
+                                pixels[X, y] = (byte)(map[row] >> XShift);
+                                pixels[X + 1, y] = (byte)(map[row++] << 8 - XShift);
+                            }
+                        }
+                        else
+                        {
+                            for (int y = baseY; y < maxY; y++)
+                                pixels[X, y] = (byte)(map[row++] >> XShift);
+                        }
+                    }
+                    else
+                    {
+                        for (int y = baseY; y < maxY; y++)
+                            pixels[X, y] = map[row++];
+                    }
+
+                    break;
+
+            }
+            
+        }
 
         public void Plot(int X, int Y)
         {
@@ -370,6 +742,19 @@ namespace SpeccyEngine
             int bit = X % 8;
 
             pixels[byteX, Y] |= (byte)(128 >> bit); 
+        }
+
+        public void Plot(int X, int Y, SpeccyColor ForeColor)
+        {
+            if (X >= bufferWidth || Y >= bufferHeight || X < 0 || Y < 0)
+                return;
+
+            int byteX = X / 8;
+            int attrY = Y / 8;
+            int bit = X % 8;
+
+            pixels[byteX, Y] |= (byte)(128 >> bit);
+            attributes[byteX, attrY, 1] = ForeColor;
         }
 
         public void Plot(int X, int Y, SpeccyColor ForeColor, SpeccyColor BackColor)
@@ -499,6 +884,42 @@ namespace SpeccyEngine
             for (int i = 0; i <= longest; i++)
             {
                 PlotClear(StartX, StartY);
+                numerator += shortest;
+                if (!(numerator < longest))
+                {
+                    numerator -= longest;
+                    StartX += dx1;
+                    StartY += dy1;
+                }
+                else
+                {
+                    StartX += dx2;
+                    StartY += dy2;
+                }
+            }
+        }
+
+        public void Line(int StartX, int StartY, int EndX, int EndY, SpeccyColor ForeColor)
+        {
+            int w = EndX - StartX;
+            int h = EndY - StartY;
+            int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
+            if (w < 0) dx1 = -1; else if (w > 0) dx1 = 1;
+            if (h < 0) dy1 = -1; else if (h > 0) dy1 = 1;
+            if (w < 0) dx2 = -1; else if (w > 0) dx2 = 1;
+            int longest = Math.Abs(w);
+            int shortest = Math.Abs(h);
+            if (!(longest > shortest))
+            {
+                longest = Math.Abs(h);
+                shortest = Math.Abs(w);
+                if (h < 0) dy2 = -1; else if (h > 0) dy2 = 1;
+                dx2 = 0;
+            }
+            int numerator = longest >> 1;
+            for (int i = 0; i <= longest; i++)
+            {
+                Plot(StartX, StartY, ForeColor);
                 numerator += shortest;
                 if (!(numerator < longest))
                 {
@@ -697,6 +1118,56 @@ namespace SpeccyEngine
                 //Top Left
                 PlotClear(X - x, Y - y);
                 PlotClear(X - y, Y - x);
+            }
+        }
+
+        public void Circle(int X, int Y, int Radius, SpeccyColor ForeColor)
+        {
+            var f = 1 - Radius;
+            var ddF_x = 1;
+            var ddF_y = -2 * Radius;
+            var x = 0;
+            var y = Radius;
+
+            //Bottom middle
+            Plot(X, Y + Radius, ForeColor);
+
+            //Top Middle
+            Plot(X, Y - Radius, ForeColor);
+
+            //Right Middle
+            Plot(X + Radius, Y, ForeColor);
+
+            //Left Middle
+            Plot(X - Radius, Y, ForeColor);
+
+            while (x < y)
+            {
+                if (f >= 0)
+                {
+                    y--;
+                    ddF_y += 2;
+                    f += ddF_y;
+                }
+                x++;
+                ddF_x += 2;
+                f += ddF_x;
+
+                //Lower Right 
+                Plot(X + x, Y + y, ForeColor);
+                Plot(X + y, Y + x, ForeColor);
+
+                //Lower Left
+                Plot(X - x, Y + y, ForeColor);
+                Plot(X - y, Y + x, ForeColor);
+
+                //Top Right
+                Plot(X + x, Y - y, ForeColor);
+                Plot(X + y, Y - x, ForeColor);
+
+                //Top Left
+                Plot(X - x, Y - y, ForeColor);
+                Plot(X - y, Y - x, ForeColor);
             }
         }
 

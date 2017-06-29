@@ -25,4 +25,29 @@ namespace SpeccyEngine
         BrightYellow = unchecked((int)0x00ffff00),
         BrightWhite = unchecked((int)0x00ffffff)
     }
+
+    public static class SpeccyColorHelper
+    {
+        static SpeccyColor[] colors = new SpeccyColor[]
+        {
+            SpeccyColor.Black,
+            SpeccyColor.Blue,
+            SpeccyColor.Red,
+            SpeccyColor.Magenta,
+            SpeccyColor.Green,
+            SpeccyColor.Cyan,
+            SpeccyColor.Yellow,
+            SpeccyColor. White,
+            SpeccyColor.BrightBlack,
+            SpeccyColor.BrightBlue,
+            SpeccyColor.BrightRed,
+            SpeccyColor.BrightMagenta,
+            SpeccyColor.BrightGreen,
+            SpeccyColor.BrightCyan,
+            SpeccyColor.BrightYellow,
+            SpeccyColor.BrightWhite,
+        };
+
+        public static SpeccyColor[] AllColors { get { return colors; } }
+    }
 }

@@ -63,7 +63,12 @@ namespace SpeccyEngine
 
         protected void Print(string Value)
         {
-            PrintAt(Ink, Paper, cursorX, cursorY, Value);
+            PrintAt(cursorX, cursorY, Value);
+        }
+
+        protected void Print(SpeccyColor Ink, string Value)
+        {
+            PrintAt(Ink, cursorX, cursorY, Value);
         }
 
         protected void Print(SpeccyColor Ink, SpeccyColor Paper, string Value)
@@ -73,7 +78,101 @@ namespace SpeccyEngine
 
         protected void PrintAt(int X, int Y, string Value)
         {
-            PrintAt(Ink, Paper, X, Y, Value);
+            if (Over)
+            {
+                int len = Value.Length;
+                cursorX = X;
+                cursorY = Y;
+                bool lastInc = false;
+                
+                for (int buc = 0; buc < len; buc++)
+                {
+                    if (Value[buc] == '\r')
+                        continue;
+
+                    lastInc = false;
+
+                    if (Value[buc] != '\n')
+                    {
+                       
+                        if (cursorY >= Screen.Height)
+                        {
+                            cursorY--;
+                            Screen.ShiftChars(1, Ink, Paper);
+                        }
+
+                        Screen.PrintChar(currentFont[Value[buc]], cursorX, cursorY, Over ? SpeccyMode.OR : SpeccyMode.COPY);
+                        cursorX++;
+
+                        if (cursorX >= Screen.Width)
+                        {
+                            cursorX = 0;
+                            cursorY++;
+                            lastInc = true;
+
+                        }
+                    }
+                    else
+                    {
+                        cursorX = 0;
+                        cursorY++;
+                        lastInc = true;
+                    }
+                }
+
+                cursorX = 0;
+                if (!lastInc)
+                    cursorY++;
+            }
+            else
+                PrintAt(Ink, Paper, X, Y, Value);
+        }
+
+        protected void PrintAt(SpeccyColor Ink, int X, int Y, string Value)
+        {
+            int len = Value.Length;
+            cursorX = X;
+            cursorY = Y;
+            bool lastInc = false;
+
+            for (int buc = 0; buc < len; buc++)
+            {
+                if (Value[buc] == '\r')
+                    continue;
+
+                lastInc = false;
+
+                if (Value[buc] != '\n')
+                {
+                    
+                    if (cursorY >= Screen.Height)
+                    {
+                        cursorY--;
+                        Screen.ShiftChars(1, Ink, Paper);
+                    }
+
+                    Screen.PrintChar(currentFont[Value[buc]], Ink, cursorX, cursorY, Over ? SpeccyMode.OR : SpeccyMode.COPY);
+                    cursorX++;
+
+                    if (cursorX >= Screen.Width)
+                    {
+                        cursorX = 0;
+                        cursorY++;
+                        lastInc = true;
+
+                    }
+                }
+                else
+                {
+                    cursorX = 0;
+                    cursorY++;
+                    lastInc = true;
+                }
+            }
+
+            cursorX = 0;
+            if (!lastInc)
+                cursorY++;
         }
 
         protected void PrintAt(SpeccyColor Ink, SpeccyColor Paper, int X, int Y, string Value)
@@ -85,23 +184,37 @@ namespace SpeccyEngine
 
             for (int buc = 0; buc < len; buc++)
             {
+                if (Value[buc] == '\r')
+                    continue;
+
                 lastInc = false;
-                if (cursorY >= Screen.Height)
+
+                if (Value[buc] != '\n')
                 {
-                    cursorY--;
-                    Screen.ShiftChars(1, Ink, Paper);
+                    if (cursorY >= Screen.Height)
+                    {
+                        cursorY--;
+                        Screen.ShiftChars(1, Ink, Paper);
+                    }
+
+                    Screen.PrintChar(currentFont[Value[buc]], Ink, Paper, cursorX, cursorY, Over ? SpeccyMode.OR : SpeccyMode.COPY);
+                    cursorX++;
+
+                    if (cursorX >= Screen.Width)
+                    {
+                        cursorX = 0;
+                        cursorY++;
+                        lastInc = true;
+
+                    }
                 }
-
-                Screen.PrintChar(currentFont[Value[buc]], Ink, Paper, cursorX, cursorY, Over ? SpeccyMode.OR : SpeccyMode.COPY);
-                cursorX++;
-
-                if (cursorX >= Screen.Width)
+                else
                 {
                     cursorX = 0;
                     cursorY++;
                     lastInc = true;
-
                 }
+                
             }
 
             cursorX = 0;
@@ -143,6 +256,13 @@ namespace SpeccyEngine
             Screen.PlotClear(X, Y);
         }
 
+        protected void Plot(SpeccyColor Ink, int X, int Y)
+        {
+            plotX = X;
+            plotY = Y;
+            Screen.Plot(X, Y, Ink);
+        }
+
         protected void Plot(SpeccyColor Ink, SpeccyColor Paper, int X, int Y)
         {
             plotX = X;
@@ -171,6 +291,13 @@ namespace SpeccyEngine
             plotY = Y;
         }
 
+        protected void Draw(SpeccyColor Ink, int X, int Y)
+        {
+            Screen.Line(plotX, plotY, X, Y, Ink);
+            plotX = X;
+            plotY = Y;
+        }
+
         protected void Draw(SpeccyColor Ink, SpeccyColor Paper, int X, int Y)
         {
             Screen.Line(plotX, plotY, X, Y, Ink, Paper);
@@ -195,6 +322,13 @@ namespace SpeccyEngine
         protected void CircleClear(int X, int Y, int Radius)
         {
             Screen.CircleClear(X, Y, Radius);
+            plotX = X;
+            plotY = Y;
+        }
+
+        protected void Circle(SpeccyColor Ink, int X, int Y, int Radius)
+        {
+            Screen.Circle(X, Y, Radius, Ink);
             plotX = X;
             plotY = Y;
         }
@@ -315,9 +449,9 @@ namespace SpeccyEngine
             {
                 char c = Value[buc];
 
-                if (c == '1')
+                if (c == '1' || c == '@')
                     val |= (byte)(128 >> buc);
-                else if (c != '0')
+                else if (c != '0' && c != '.')
                     throw new InvalidCastException();
 
             }

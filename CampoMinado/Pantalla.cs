@@ -33,7 +33,7 @@ namespace CampoMinado
                 eng.SetScene(newScene);
             };
 
-            eng.SetScene(new FieldScene(0));
+            eng.SetScene(new IntroScene()); ///FieldScene(0));
 
             eng.Start();
         }

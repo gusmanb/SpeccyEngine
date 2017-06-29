@@ -15,7 +15,7 @@ namespace SpeccyProgramTemplate
             Print("Hello World!!!!");
             Pause(500);
             Circle(SpeccyColor.Red, SpeccyColor.White, 256 / 2, 192 / 2, 60);
-            Pause(500);
+            Beep(0.2, 0);
             Circle(SpeccyColor.Yellow, SpeccyColor.White, 256 / 2, 192 / 2, 45);
             Pause(500);
             Circle(SpeccyColor.Blue, SpeccyColor.White, 256 / 2, 192 / 2, 30);

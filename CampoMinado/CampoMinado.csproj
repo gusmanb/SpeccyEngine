@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FieldScene.cs" />
+    <Compile Include="IntroScene.cs" />
     <Compile Include="Pantalla.cs">
       <SubType>Form</SubType>
     </Compile>
