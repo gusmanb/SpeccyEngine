@@ -16,10 +16,13 @@ namespace SpeccyEngine
         int plotX = 0;
         int plotY = 0;
 
-        protected SpeccyColor Ink = SpeccyColor.Black; 
+        protected SpeccyColor Ink = SpeccyColor.Black;
         protected SpeccyColor Paper = SpeccyColor.White;
 
         protected bool Over = false;
+
+        protected SpeccyInstrumentChannel[] Instruments { get { return ayPlayer.Instruments; } }
+        protected SpeccyPercussionChannel Percussion { get { return ayPlayer.Percussion; } }
 
         protected SpeccyColor[,,] Attribs { get { return Screen.Attributes; } }
         protected byte[,] Pixels { get { return Screen.Pixels; } }
@@ -29,16 +32,18 @@ namespace SpeccyEngine
         protected SpeccyBasicFont FontA = new SpeccyBasicFont();
         protected SpeccyBasicFont FontB = new SpeccyBasicFont();
 
-        const double freqBase = 261.63;
-        const double aFreq = 1.0594630943592953;
-
         private SpeccyBasicFont currentFont;
+
+        SpeccyBeeper beeper;
+        SpeccyMIDI ayPlayer;
 
         public SpeccyBasicProgram()
         {
             currentFont = FontA;
             AutoClear = false;
             FPS = 60;
+            beeper = new SpeccyBeeper();
+            ayPlayer = new SpeccyMIDI();
         }
 
         protected void LockScreen()
@@ -84,7 +89,7 @@ namespace SpeccyEngine
                 cursorX = X;
                 cursorY = Y;
                 bool lastInc = false;
-                
+
                 for (int buc = 0; buc < len; buc++)
                 {
                     if (Value[buc] == '\r')
@@ -94,7 +99,7 @@ namespace SpeccyEngine
 
                     if (Value[buc] != '\n')
                     {
-                       
+
                         if (cursorY >= Screen.Height)
                         {
                             cursorY--;
@@ -144,7 +149,7 @@ namespace SpeccyEngine
 
                 if (Value[buc] != '\n')
                 {
-                    
+
                     if (cursorY >= Screen.Height)
                     {
                         cursorY--;
@@ -214,11 +219,11 @@ namespace SpeccyEngine
                     cursorY++;
                     lastInc = true;
                 }
-                
+
             }
 
             cursorX = 0;
-            if(!lastInc)
+            if (!lastInc)
                 cursorY++;
         }
 
@@ -339,20 +344,32 @@ namespace SpeccyEngine
             plotX = X;
             plotY = Y;
         }
-
-        protected void AdvancedBeep(int Frequency, int MsDuration)
+        
+        protected void Play(string Tune)
         {
-            SpeccyBeeper.PlayBeepSync((ushort)Frequency, MsDuration);
+            ayPlayer.Play(Tune);
+        }
+
+        protected void PlayAsync(string Tune)
+        {
+            ayPlayer.PlayAsync(Tune);
+        }
+
+        protected void BeepAsync(double Duration, int Pitch)
+        {
+            beeper.BeepAsync(Duration, Pitch);
         }
 
         protected void Beep(double Duration, int Pitch)
         {
-            int msDuration = (int)(Duration * 1000);
-            int freq = (int)(Math.Round(freqBase * Math.Pow(aFreq, Pitch)));
-
-            SpeccyBeeper.PlayBeepSync((ushort)freq, msDuration);
+            beeper.Beep(Duration, Pitch);
         }
-        
+
+        protected string InKeys()
+        {
+            return SpeccyKeyboard.PressedKeys();
+        }
+
         string inputResult;
         bool inputSuccess;
 
@@ -479,7 +496,11 @@ namespace SpeccyEngine
 
         public override void Dispose()
         {
-            
+            if (ayPlayer != null)
+            {
+                ayPlayer.Dispose();
+                ayPlayer = null;
+            }
         }
 
         public abstract void Main();

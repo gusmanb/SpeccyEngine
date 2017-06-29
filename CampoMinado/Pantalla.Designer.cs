@@ -40,6 +40,8 @@
             this.MinimizeBox = false;
             this.Name = "Pantalla";
             this.Text = "CAMPO MINADO ";
+            this.Activated += new System.EventHandler(this.Pantalla_Activated);
+            this.Deactivate += new System.EventHandler(this.Pantalla_Deactivate);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
 

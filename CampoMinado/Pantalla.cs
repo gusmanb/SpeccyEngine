@@ -33,9 +33,19 @@ namespace CampoMinado
                 eng.SetScene(newScene);
             };
 
-            eng.SetScene(new IntroScene()); ///FieldScene(0));
+            eng.SetScene(new FieldScene(8));
 
             eng.Start();
+        }
+
+        private void Pantalla_Activated(object sender, EventArgs e)
+        {
+            eng.DisableInput = false;
+        }
+
+        private void Pantalla_Deactivate(object sender, EventArgs e)
+        {
+            eng.DisableInput = true;
         }
     }
 }

@@ -35,9 +35,7 @@ namespace SpeccyEngine
         internal void Frame(int RenderMultiplier, SpeccyScreen Screen, Graphics G)
         {
             sw.Restart();
-
-            SpeccyKeyboard.Update();
-
+            
             if(clear)
                 Screen.Clear(fg, bg);
 

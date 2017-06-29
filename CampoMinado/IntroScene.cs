@@ -1,6 +1,7 @@
 ﻿using SpeccyEngine;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -51,7 +52,7 @@ namespace CampoMinado
             Paper = Color.Blue;
 
             Cls();
-
+            
             PrintAt(5, 0, "EL DR. GUSMAN PRESENTA");
 
             for (int y = 2; y < 19; y++)

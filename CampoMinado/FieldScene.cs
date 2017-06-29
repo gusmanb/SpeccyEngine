@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using SpeccyEngine;
 using keyb = SpeccyEngine.SpeccyKeyboard;
-using beep = SpeccyEngine.SpeccyBeeper;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
@@ -17,14 +16,15 @@ namespace CampoMinado
         FieldCell[,] field = new FieldCell[32, 24];
         static FieldSettings[] fields = new FieldSettings[]
         {
-            new FieldSettings{ Foreground = SpeccyColor.Black, Background = SpeccyColor.Yellow, MapEnabled = true, MineCount = 64 },
-            new FieldSettings{ Foreground = SpeccyColor.Black, Background = SpeccyColor.Cyan, Damsel1X = 6, Damsel1Y = 6, Damsel2X = 25, Damsel2Y = 6, MapEnabled = true, MineCount = 64 },
-            new FieldSettings{ Foreground = SpeccyColor.Black, Background = SpeccyColor.Green, Damsel1X = 6, Damsel1Y = 12, Damsel2X = 25, Damsel2Y = 12, MapEnabled = true, MineCount = 64, ZapperProbability = 2, ZapperBombProbability = 300 },
-            new FieldSettings{ Foreground = SpeccyColor.White, Background = SpeccyColor.Magenta, Damsel1X = 6, Damsel1Y = 12, Damsel2X = 20, Damsel2Y = 12, MapEnabled = true, MineCount = 78, ZapperProbability = 2, ZapperBombProbability = 300, LiveMineDelay = 500, LiveMineSpeed = 30 },
-            new FieldSettings{ Foreground = SpeccyColor.White, Background = SpeccyColor.Red, Damsel1X = 6, Damsel1Y = 8, Damsel2X = 20, Damsel2Y = 8, MapEnabled = true, MineCount = 84, ZapperProbability = 2, ZapperBombProbability = 350, LiveMineDelay = 500, LiveMineSpeed = 30 },
-            new FieldSettings{ Foreground = SpeccyColor.White, Background = SpeccyColor.Blue, Damsel1X = 6, Damsel1Y = 4, Damsel2X = 20, Damsel2Y = 4, MapEnabled = true, MineCount = 96, ZapperProbability = 2, ZapperBombProbability = 400, LiveMineDelay = 400, LiveMineSpeed = 25 },
-            new FieldSettings{ Foreground = SpeccyColor.White, Background = SpeccyColor.Black, Damsel1X = 6, Damsel1Y = 6, Damsel2X = 24, Damsel2Y = 6, MapEnabled = true, MineCount = 48, LiveMineDelay = 250, LiveMineSpeed = 5 },
-            new FieldSettings{ Foreground = SpeccyColor.Black, Background = SpeccyColor.Yellow, Damsel1X = 6, Damsel1Y = 14, Damsel2X = 24, Damsel2Y = 14, MapEnabled = true, GatesClosed = true, MineCount = 64, ZapperProbability = 2, ZapperBombProbability = 350 },
+            new FieldSettings{ Foreground = SpeccyColor.Black, Background = SpeccyColor.Yellow, LastScreen = true, MineCount = 64 },
+            new FieldSettings{ Foreground = SpeccyColor.Black, Background = SpeccyColor.Cyan, Damsel1X = 6, Damsel1Y = 6, Damsel2X = 25, Damsel2Y = 6, LastScreen = true, MineCount = 64 },
+            new FieldSettings{ Foreground = SpeccyColor.Black, Background = SpeccyColor.Green, Damsel1X = 6, Damsel1Y = 12, Damsel2X = 25, Damsel2Y = 12, LastScreen = true, MineCount = 64, ZapperProbability = 2, ZapperBombProbability = 300 },
+            new FieldSettings{ Foreground = SpeccyColor.White, Background = SpeccyColor.Magenta, Damsel1X = 6, Damsel1Y = 12, Damsel2X = 20, Damsel2Y = 12, LastScreen = true, MineCount = 78, ZapperProbability = 2, ZapperBombProbability = 300, LiveMineDelay = 500, LiveMineSpeed = 30 },
+            new FieldSettings{ Foreground = SpeccyColor.White, Background = SpeccyColor.Red, Damsel1X = 6, Damsel1Y = 8, Damsel2X = 20, Damsel2Y = 8, LastScreen = true, MineCount = 84, ZapperProbability = 2, ZapperBombProbability = 350, LiveMineDelay = 500, LiveMineSpeed = 30 },
+            new FieldSettings{ Foreground = SpeccyColor.White, Background = SpeccyColor.Blue, Damsel1X = 6, Damsel1Y = 4, Damsel2X = 20, Damsel2Y = 4, LastScreen = true, MineCount = 96, ZapperProbability = 2, ZapperBombProbability = 400, LiveMineDelay = 400, LiveMineSpeed = 25 },
+            new FieldSettings{ Foreground = SpeccyColor.White, Background = SpeccyColor.Black, Damsel1X = 6, Damsel1Y = 6, Damsel2X = 24, Damsel2Y = 6, LastScreen = true, MineCount = 48, LiveMineDelay = 250, LiveMineSpeed = 5 },
+            new FieldSettings{ Foreground = SpeccyColor.Black, Background = SpeccyColor.Yellow, Damsel1X = 6, Damsel1Y = 14, Damsel2X = 24, Damsel2Y = 14, LastScreen = true, GatesClosed = true, MineCount = 64, ZapperProbability = 2, ZapperBombProbability = 350 },
+            new FieldSettings{ Foreground = SpeccyColor.Black, Background = SpeccyColor.Cyan, LastScreen = false, GatesClosed = true, MineCount = 78 },
         };
 
         SpeccySprite bg;
@@ -68,8 +68,11 @@ namespace CampoMinado
         List<coord> ensuredPath;
         SpeccyFont fnt;
 
+        SpeccyBeeper beep;
+
         public FieldScene(int LevelNumber, int CurrentScore = 0) : base()
         {
+            beep = new SpeccyBeeper();
             FPS = 20;
             CreateFont();
             currentLevel = LevelNumber + 1;
@@ -259,7 +262,9 @@ namespace CampoMinado
 
             int framesForGates = currentField.GatesClosed ? 60 : 0;
 
-            SpeccyAnimation anim = new SpeccyAnimation((frames + 1) * frameLen + 1 + framesForDamsels + 45 + framesForField + framesForGates);
+            int framesForMap = currentField.LastScreen ? 0 : 60;
+
+            SpeccyAnimation anim = new SpeccyAnimation((frames + 1) * frameLen + 1 + framesForDamsels + 45 + framesForField + framesForGates + framesForMap + 50);
 
             player.Visible = false;
 
@@ -310,7 +315,7 @@ namespace CampoMinado
                     Frame = currentFrame,
                     FrameAction = () =>
                     {
-                        beep.PlayBeepAsync(1500, 2);
+                        beep.PlayAsync(1500, 2);
                     }
                 });
             }
@@ -348,7 +353,7 @@ namespace CampoMinado
                         Frame = tcurrentFrame,
                         FrameAction = () =>
                         {
-                            beep.PlayBeepAsync(5000, 10);
+                            beep.PlayAsync(5000, 10);
                             damsel1.CurrentFrame = damsel1.CurrentFrame == 0 ? 1 : 0;
                             damsel2.CurrentFrame = damsel2.CurrentFrame == 0 ? 1 : 0;
 
@@ -361,14 +366,14 @@ namespace CampoMinado
 
             if (framesForGates > 0)
             {
-                int showFrame = frames * frameLen + 10 + framesForDamsels + 20;
+                int showFrame = frames * frameLen + 10 + framesForDamsels + framesForField + 20;
 
                 anim.AddKeyFrame(new SpeccyKeyFrame
                 {
                     Frame = showFrame,
                     FrameAction = () =>
                     {
-                        beep.PlayBeepAsync(7500, 100);
+                        beep.PlayAsync(7500, 100);
                         bottomLabel.Visible = true;
                         bottomLabel.Flash = true;
                         bottomLabel.BackColor = SpeccyColor.White;
@@ -395,14 +400,64 @@ namespace CampoMinado
                     Frame = hideFrame,
                     FrameAction = () =>
                     {
-                        beep.PlayBeepAsync(7500, 100);
+                        beep.PlayAsync(7500, 100);
                         bottomLabel.Visible = false;
                         centerLabel.Visible = false;
                     }
                 });
             }
 
-            int ccurrentFrame = frames * frameLen + 10 + framesForDamsels + framesForField + framesForGates;
+            if (framesForMap > 0)
+            {
+                int showFrame = frames * frameLen + 10 + framesForDamsels + framesForGates + framesForField + 20;
+
+                anim.AddKeyFrame(new SpeccyKeyFrame
+                {
+                    Frame = showFrame,
+                    FrameAction = () =>
+                    {
+                        centerLabel.Visible = false;
+                        bottomLabel.Visible = true;
+                        bottomLabel.Flash = true;
+                        bottomLabel.BackColor = SpeccyColor.Black;
+                        bottomLabel.ForeColor = SpeccyColor.BrightRed;
+                        bottomLabel.Text = "TU MAPA NO FUNCIONA!!!";
+                        bottomLabel.Flash = true;
+
+
+                    }
+                });
+
+                int nFrame = showFrame + 1;
+                anim.AddKeyFrame(new SpeccyKeyFrame
+                {
+                    Frame = nFrame,
+                    FrameAction = () =>
+                    {
+                        beep.Play(4000, 100);
+                        beep.Play(3800, 100);
+                        beep.Play(4000, 100);
+                        beep.Play(3800, 100);
+                        beep.Play(4000, 100);
+                        beep.Play(3800, 100);
+                    }
+                });
+
+                int hideFrame = frames * frameLen + 10 + framesForDamsels + framesForField + framesForGates + framesForMap - 1;
+
+                anim.AddKeyFrame(new SpeccyKeyFrame
+                {
+                    Frame = hideFrame,
+                    FrameAction = () =>
+                    {
+                        beep.PlayAsync(7500, 100);
+                        bottomLabel.Visible = false;
+                        centerLabel.Visible = false;
+                    }
+                });
+            }
+
+            int ccurrentFrame = frames * frameLen + 10 + framesForDamsels + framesForField + framesForGates + framesForMap;
 
             anim.AddKeyFrame(new SpeccyKeyFrame
             {
@@ -424,7 +479,7 @@ namespace CampoMinado
 
             for (int buc = 0; buc < 12; buc += 1)
             {
-                int currentFrame = frames * frameLen + 11 + framesForDamsels + buc + framesForField + framesForGates;
+                int currentFrame = frames * frameLen + 11 + framesForDamsels + buc + framesForField + framesForGates + framesForMap;
                 int freq = 4500 + buc * 50;
 
                 anim.AddKeyFrame(new SpeccyKeyFrame
@@ -432,13 +487,13 @@ namespace CampoMinado
                     Frame = currentFrame,
                     FrameAction = () =>
                     {
-                        beep.PlayBeepAsync((ushort)freq, 16);
+                        beep.PlayAsync((ushort)freq, 16);
                     }
                 });
             }
 
 
-            int fcurrentFrame = frames * frameLen + 34 + framesForDamsels + framesForField + framesForGates;
+            int fcurrentFrame = frames * frameLen + 34 + framesForDamsels + framesForField + framesForGates + framesForMap;
 
             anim.AddKeyFrame(new SpeccyKeyFrame
             {
@@ -580,16 +635,16 @@ namespace CampoMinado
         private void GeneratePlayer()
         {
             SpeccyFrame playerFrame = new SpeccyFrame(1, 1, new string[] { "@" }, 
-                currentField.MapEnabled ? SpeccyColor.Black : currentField.Foreground, 
-                currentField.MapEnabled ? SpeccyColor.White : currentField.Background);
+                currentField.LastScreen ? SpeccyColor.Black : currentField.Foreground, 
+                currentField.LastScreen ? SpeccyColor.White : currentField.Background);
 
             SpeccyFrame playerDamselFrame = new SpeccyFrame(1, 1, new string[] { "%" }, 
-                currentField.MapEnabled ? SpeccyColor.Black : currentField.Foreground,
-                currentField.MapEnabled ? SpeccyColor.White : currentField.Background);
+                currentField.LastScreen ? SpeccyColor.Black : currentField.Foreground,
+                currentField.LastScreen ? SpeccyColor.White : currentField.Background);
 
             SpeccyFrame playerExplodeFrame = new SpeccyFrame(1, 1, new string[] { "=" },
-                currentField.MapEnabled ? SpeccyColor.Black : currentField.Foreground,
-                currentField.MapEnabled ? SpeccyColor.White : currentField.Background);
+                currentField.LastScreen ? SpeccyColor.Black : currentField.Foreground,
+                currentField.LastScreen ? SpeccyColor.White : currentField.Background);
 
             player = new SpeccySprite(1, 1, fnt);
             player.AddFrame(playerFrame);
@@ -747,7 +802,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     mine.CurrentFrame = 1;
-                    beep.PlayBeepAsync(100, 10);
+                    beep.PlayAsync(100, 10);
                 }
             });
 
@@ -757,7 +812,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     mine.CurrentFrame = 0;
-                    beep.PlayBeepAsync(100, 10);
+                    beep.PlayAsync(100, 10);
 
                 }
             });
@@ -768,7 +823,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     mine.CurrentFrame = 1;
-                    beep.PlayBeepAsync(110, 10);
+                    beep.PlayAsync(110, 10);
 
                 }
             });
@@ -779,7 +834,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     mine.CurrentFrame = 0;
-                    beep.PlayBeepAsync(110, 10);
+                    beep.PlayAsync(110, 10);
 
                 }
             });
@@ -790,7 +845,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     mine.CurrentFrame = 1;
-                    beep.PlayBeepAsync(100, 10);
+                    beep.PlayAsync(100, 10);
 
                 }
             });
@@ -801,7 +856,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     mine.CurrentFrame = 0;
-                    beep.PlayBeepAsync(100, 10);
+                    beep.PlayAsync(100, 10);
                 }
             });
 
@@ -811,7 +866,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     mine.CurrentFrame = 1;
-                    beep.PlayBeepAsync(110, 10);
+                    beep.PlayAsync(110, 10);
 
                 }
             });
@@ -896,7 +951,7 @@ namespace CampoMinado
                         var coord = playerReplay[step];
                         player.X = coord.x;
                         player.Y = coord.y;
-                        beep.PlayBeepAsync((ushort)currentFreq, 100);
+                        beep.PlayAsync((ushort)currentFreq, 100);
 
                         if (player.Y == 0)
                         {
@@ -945,7 +1000,7 @@ namespace CampoMinado
                     Frame = frame,
                     FrameAction = () =>
                     {
-                        beep.PlayBeepAsync((ushort)currentFreq, frameLen * 50);
+                        beep.PlayAsync((ushort)currentFreq, frameLen * 50);
 
                     }
                 });
@@ -1018,14 +1073,14 @@ namespace CampoMinado
                 Frame = 1,
                 FrameAction = () =>
                 {
-                    beep.PlayBeepSync(100, 15);
-                    beep.PlayBeepSync(110, 15);
-                    beep.PlayBeepSync(100, 15);
-                    beep.PlayBeepSync(115, 15);
-                    beep.PlayBeepSync(90, 15);
-                    beep.PlayBeepSync(115, 15);
-                    beep.PlayBeepSync(99, 15);
-                    beep.PlayBeepSync(108, 15);
+                    beep.Play(100, 15);
+                    beep.Play(110, 15);
+                    beep.Play(100, 15);
+                    beep.Play(115, 15);
+                    beep.Play(90, 15);
+                    beep.Play(115, 15);
+                    beep.Play(99, 15);
+                    beep.Play(108, 15);
                 }
 
             });
@@ -1060,28 +1115,28 @@ namespace CampoMinado
                 tlLabel.ForeColor = SpeccyColor.Black;
                 tlLabel.BackColor = SpeccyColor.Green;
                 tlLabel.Text = "MINAS CERCA 0";
-                beep.PlayBeepAsync(110, 10);
+                beep.PlayAsync(110, 10);
             }
             else if (adjacent == 1)
             {
                 tlLabel.ForeColor = SpeccyColor.White;
                 tlLabel.BackColor = SpeccyColor.Magenta;
                 tlLabel.Text = "MINAS CERCA 1";
-                beep.PlayBeepAsync(330, 50);
+                beep.PlayAsync(330, 50);
             }
             else if (adjacent == 2)
             {
                 tlLabel.ForeColor = SpeccyColor.White;
                 tlLabel.BackColor = SpeccyColor.Red;
                 tlLabel.Text = "MINAS CERCA 2";
-                beep.PlayBeepAsync(440, 50);
+                beep.PlayAsync(440, 50);
             }
             else if (adjacent == 3)
             {
                 tlLabel.ForeColor = SpeccyColor.White;
                 tlLabel.BackColor = SpeccyColor.Blue;
                 tlLabel.Text = "MINAS CERCA 3";
-                beep.PlayBeepAsync(550, 50);
+                beep.PlayAsync(550, 50);
             }
 
             return true;
@@ -1144,7 +1199,7 @@ namespace CampoMinado
                         var pos = playerReplay[liveMineStep];
                         liveMine.X = pos.x;
                         liveMine.Y = pos.y;
-                        beep.PlayBeepAsync(7500, 5);
+                        beep.PlayAsync(7500, 5);
                     }
                 }
                 else
@@ -1235,7 +1290,8 @@ namespace CampoMinado
                     return;
                 }
 
-                bg.Frame[player.X, player.Y].BackColor = SpeccyColor.White;
+                if(currentField.LastScreen)
+                    bg.Frame[player.X, player.Y].BackColor = SpeccyColor.White;
 
                 player.X = newCoordX;
                 player.Y = newCoordY;
@@ -1262,7 +1318,7 @@ namespace CampoMinado
                 Frame = 1,
                 FrameAction = () =>
                 {
-                    beep.PlayBeepAsync(7500, 100);
+                    beep.PlayAsync(7500, 100);
                     
                     centerLabel.Visible = true;
                     centerLabel.Flash = false;
@@ -1281,7 +1337,7 @@ namespace CampoMinado
                 Frame = 29,
                 FrameAction = () =>
                 {
-                    beep.PlayBeepAsync(10000, 100);
+                    beep.PlayAsync(10000, 100);
                     centerLabel.Visible = false;
                 }
             });
@@ -1305,7 +1361,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     liveMine.CurrentFrame = 1;
-                    beep.PlayBeepAsync(100, 10);
+                    beep.PlayAsync(100, 10);
                 }
             });
 
@@ -1315,7 +1371,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     liveMine.CurrentFrame = 0;
-                    beep.PlayBeepAsync(100, 10);
+                    beep.PlayAsync(100, 10);
 
                 }
             });
@@ -1326,7 +1382,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     liveMine.CurrentFrame = 1;
-                    beep.PlayBeepAsync(110, 10);
+                    beep.PlayAsync(110, 10);
 
                 }
             });
@@ -1337,7 +1393,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     liveMine.CurrentFrame = 0;
-                    beep.PlayBeepAsync(110, 10);
+                    beep.PlayAsync(110, 10);
 
                 }
             });
@@ -1348,7 +1404,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     liveMine.CurrentFrame = 1;
-                    beep.PlayBeepAsync(100, 10);
+                    beep.PlayAsync(100, 10);
 
                 }
             });
@@ -1359,7 +1415,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     liveMine.CurrentFrame = 0;
-                    beep.PlayBeepAsync(100, 10);
+                    beep.PlayAsync(100, 10);
                 }
             });
 
@@ -1369,7 +1425,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     liveMine.CurrentFrame = 1;
-                    beep.PlayBeepAsync(110, 10);
+                    beep.PlayAsync(110, 10);
 
                 }
             });
@@ -1407,7 +1463,7 @@ namespace CampoMinado
             zapper.X = 1;
             zapper.Y = y;
 
-            beep.PlayBeepAsync(6500, 5);
+            beep.PlayAsync(6500, 5);
 
             int frameLen = 3;
 
@@ -1430,7 +1486,7 @@ namespace CampoMinado
                     Frame = curFrame,
                     FrameAction = () =>
                     {
-                        beep.PlayBeepAsync(6500, 5);
+                        beep.PlayAsync(6500, 5);
                         zapper.X = curX;
                         zapper.Y = curY;
 
@@ -1485,7 +1541,7 @@ namespace CampoMinado
                 Frame = 30 * frameLen,
                 FrameAction = () => 
                 {
-                    beep.PlayBeepAsync(6500, 5);
+                    beep.PlayAsync(6500, 5);
                     zapper.Visible = false;
                     brLabel.Visible = false;
                     Sprites.Remove(zapper);
@@ -1537,33 +1593,15 @@ namespace CampoMinado
                 Frame = 1,
                 FrameAction = () =>
                 {
-                    beep.PlayBeepSync((ushort)7500, 25);
-                    beep.PlayBeepSync((ushort)7750, 25);
-                    beep.PlayBeepSync((ushort)8000, 25);
-                    beep.PlayBeepSync((ushort)8250, 25);
-                    beep.PlayBeepSync((ushort)8500, 25);
+                    beep.Play((ushort)7500, 25);
+                    beep.Play((ushort)7750, 25);
+                    beep.Play((ushort)8000, 25);
+                    beep.Play((ushort)8250, 25);
+                    beep.Play((ushort)8500, 25);
 
                 }
             });
-
-
-            //for (int buc = 0; buc < frames; buc++)
-            //{
-            //    int frame = buc * frameLen + 1 + 22;
-            //    int currentFreq = (int)(audioStep * buc) + freq;
-
-            //    anim.AddKeyFrame(new SpeccyKeyFrame
-            //    {
-            //        Frame = frame,
-            //        FrameAction = () =>
-            //        {
-            //            beep.PlayBeepAsync((ushort)currentFreq, frameLen * 50);
-
-            //        }
-            //    });
-
-            //}
-
+            
             ShowMines(anim, frames * frameLen + 1);
 
             int tframe = frames * frameLen + 23;
@@ -1605,7 +1643,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     player.CurrentFrame = 0;
-                    beep.PlayBeepAsync(440, 50);
+                    beep.PlayAsync(440, 50);
                 }
             });
 
@@ -1614,7 +1652,7 @@ namespace CampoMinado
                 Frame = 6,
                 FrameAction = () =>
                 {
-                    beep.PlayBeepAsync(385, 50);
+                    beep.PlayAsync(385, 50);
 
                 }
             });
@@ -1625,7 +1663,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     player.CurrentFrame = 1;
-                    beep.PlayBeepAsync(330, 50);
+                    beep.PlayAsync(330, 50);
 
                 }
             });
@@ -1636,7 +1674,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     player.CurrentFrame = 0;
-                    beep.PlayBeepAsync(440, 50);
+                    beep.PlayAsync(440, 50);
 
                 }
             });
@@ -1646,7 +1684,7 @@ namespace CampoMinado
                 Frame = 15,
                 FrameAction = () =>
                 {
-                    beep.PlayBeepAsync(385, 50);
+                    beep.PlayAsync(385, 50);
 
                 }
             });
@@ -1657,7 +1695,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     player.CurrentFrame = 1;
-                    beep.PlayBeepAsync(330, 50);
+                    beep.PlayAsync(330, 50);
 
                 }
             });
@@ -1668,7 +1706,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     player.CurrentFrame = 0;
-                    beep.PlayBeepAsync(440, 50);
+                    beep.PlayAsync(440, 50);
 
                 }
             });
@@ -1678,7 +1716,7 @@ namespace CampoMinado
                 Frame = 24,
                 FrameAction = () =>
                 {
-                    beep.PlayBeepAsync(385, 50);
+                    beep.PlayAsync(385, 50);
 
                 }
             });
@@ -1689,7 +1727,7 @@ namespace CampoMinado
                 FrameAction = () =>
                 {
                     player.CurrentFrame = 1;
-                    beep.PlayBeepAsync(330, 50);
+                    beep.PlayAsync(330, 50);
 
                 }
             });
@@ -1698,7 +1736,6 @@ namespace CampoMinado
 
         public override void Dispose()
         {
-            
         }
 
         public enum FieldCell
@@ -1727,7 +1764,7 @@ namespace CampoMinado
             public int LiveMineSpeed { get; set; }
             public int LiveMineDelay { get; set; }
             public int MineCount { get; set; }
-            public bool MapEnabled { get; set; }
+            public bool LastScreen { get; set; }
 
             public FieldSettings Clone()
             {

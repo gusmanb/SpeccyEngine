@@ -41,6 +41,10 @@ namespace SpeccyEngine
             mult = Math.Max(1, RenderMultiplier);
         }
 
+        bool disableInput;
+
+        public bool DisableInput { get { return disableInput; } set { disableInput = value; } }
+        
         public void SetScene(SpeccyScene Scene)
         {
             if (scene != null)
@@ -86,6 +90,8 @@ namespace SpeccyEngine
 
             while (running)
             {
+                if (!disableInput)
+                    SpeccyKeyboard.Update();
 #if DEBUG
                 cnt++;
 #endif
