@@ -14,20 +14,20 @@ namespace SpeccyEngine
 
         MidiOut midiOut;
         
-        SpeccyInstrumentChannel[] instruments;
+        SpeccyMIDIChannel[] instruments;
         SpeccyPercussionChannel percussion;
 
-        public SpeccyInstrumentChannel[] Instruments { get { return instruments; } }
+        public SpeccyMIDIChannel[] Instruments { get { return instruments; } }
         public SpeccyPercussionChannel Percussion { get { return percussion; } }
         
         public SpeccyMIDI()
         {
             midiOut = new MidiOut(0);
             
-            instruments = new SpeccyInstrumentChannel[15];
+            instruments = new SpeccyMIDIChannel[15];
 
             for (int buc = 0; buc < 15; buc++)
-                instruments[buc] = new SpeccyInstrumentChannel(midiOut, buc > 9 ? buc + 2 : buc + 1);
+                instruments[buc] = new SpeccyMIDIChannel(midiOut, buc > 9 ? buc + 2 : buc + 1);
 
             percussion = new SpeccyPercussionChannel(midiOut);
         }
@@ -81,14 +81,14 @@ namespace SpeccyEngine
             midiOut.Send(MidiMessage.StopNote((int)Note, Volume, Channel).RawData);
         }
 
-        public void StartPercussion(SpeccyMIDINotes Pitch, int Volume)
+        public void StartPercussion(SpeccyMIDIPercussion Instrument, int Volume)
         {
-            midiOut.Send(MidiMessage.StartNote((int)Pitch, Volume, 10).RawData);
+            midiOut.Send(MidiMessage.StartNote((int)Instrument, Volume, 10).RawData);
         }
 
-        public void StopPercussion(SpeccyMIDINotes Note, int Volume)
+        public void StopPercussion(SpeccyMIDIPercussion Instrument, int Volume)
         {
-            midiOut.Send(MidiMessage.StopNote((int)Note, Volume, 10).RawData);
+            midiOut.Send(MidiMessage.StopNote((int)Instrument, Volume, 10).RawData);
         }
 
         public void Dispose()
@@ -108,7 +108,7 @@ namespace SpeccyEngine
         }
     }
     
-    public class SpeccyInstrumentChannel
+    public class SpeccyMIDIChannel
     {
         protected MidiOut output;
         int channel;
@@ -150,7 +150,7 @@ namespace SpeccyEngine
             this.Note = new SpeccyMIDINote { Note = Note, Volume = Volume };
         }
 
-        public SpeccyInstrumentChannel(MidiOut Output, int Channel)
+        public SpeccyMIDIChannel(MidiOut Output, int Channel)
         {
             output = Output;
             channel = Channel;
@@ -158,7 +158,7 @@ namespace SpeccyEngine
 
         public bool IsPlaying { get { return player != null; } }
 
-        private MIDIChannelPlayer player;
+        private SpeccyMIDIChannelPlayer player;
         
         public void Play(string Tune)
         {
@@ -168,7 +168,7 @@ namespace SpeccyEngine
                 player = null;
             }
 
-            player = new MIDIChannelPlayer(this, Tune);
+            player = new SpeccyMIDIChannelPlayer(this, Tune);
 
             player.Play();
         }
@@ -188,26 +188,27 @@ namespace SpeccyEngine
             player = null;
         }
 
-        public class MIDIChannelPlayer : IDisposable
+        internal class SpeccyMIDIChannelPlayer : IDisposable
         {
             string tune;
-            SpeccyInstrumentChannel channel;
+            SpeccyMIDIChannel channel;
             Timer tickTimer;
 
             int index, tokenIndex;
             double millisecondsFromStart;
             DateTime startTime;
-            int tempo = 60;                     // ie, 60 quarter notes per minute
+            int tempo = 60;
             int volume = 127;
             double duration = 1 / 4.0;
             bool noMoreNotes;
-            List<ReleaseInfo> releaseInfoList = new List<ReleaseInfo>();
-            List<ReleaseInfo> removeInfoList = new List<ReleaseInfo>();
+
+            ReleaseInfo toRelease = null;
+            
             char currentOctave = '4';
             
             const string noteLookupString = "C D EF G A B";
 
-            public MIDIChannelPlayer(SpeccyInstrumentChannel Channel, string Tune)
+            public SpeccyMIDIChannelPlayer(SpeccyMIDIChannel Channel, string Tune)
             {
                 if (string.IsNullOrWhiteSpace(Tune))
                     throw new InvalidProgramException("Invalid tune");
@@ -271,31 +272,21 @@ namespace SpeccyEngine
 
                 tickTimer = null;
 
+                channel.Note = null;
                 channel.playerFinished();
             }
 
             void Tick()
             {
                 DateTime tickTime = DateTime.Now;
-
-                removeInfoList.Clear();
                 
-                foreach (ReleaseInfo releaseInfo in releaseInfoList)
+                if (toRelease != null && tickTime >= startTime + TimeSpan.FromMilliseconds(toRelease.MillisecondsElapsed))
                 {
-                    if (tickTime >= startTime + TimeSpan.FromMilliseconds(releaseInfo.MillisecondsElapsed))
-                    {
-                        // Release note with StopNote message
-                        channel.Note = null;
-                        removeInfoList.Add(releaseInfo);
-                    }
+                    channel.Note = null;
+                    toRelease = null;
                 }
 
-                foreach (ReleaseInfo releaseInfo in removeInfoList)
-                {
-                    releaseInfoList.Remove(releaseInfo);
-                }
-
-                if (noMoreNotes && releaseInfoList.Count == 0)
+                if (noMoreNotes && toRelease == null)
                 {
                     Stop();
                     return;
@@ -354,8 +345,12 @@ namespace SpeccyEngine
 
                     if (note != -1)
                     {
+                        if (toRelease != null)
+                            channel.Note = null;
+
                         channel.SetNote((SpeccyMIDINotes)note, volume);
-                        releaseInfoList.Add(new ReleaseInfo(note, millisecondsFromStart + 240000.0 * duration / tempo));
+                        
+                        toRelease = new ReleaseInfo(note, millisecondsFromStart + 240000.0 * duration / tempo);
                     }
                    
                     millisecondsFromStart += 240000.0 * duration / tempo;
@@ -668,14 +663,78 @@ namespace SpeccyEngine
                 Stop();
                 channel = null;
             }
+
+            internal enum MidiTokenType
+            {
+                Null,
+                Tempo,
+                Octave,
+                Instrument,
+                Volume,
+                Rest,
+                Note,
+                Duration,
+                Length,
+                Unknown
+            }
+
+            internal class MidiToken
+            {
+                public MidiToken(MidiTokenType tokenType)
+                {
+                    TokenType = tokenType;
+                }
+
+                public MidiToken(MidiTokenType tokenType, int code)
+                {
+                    TokenType = tokenType;
+                    Code = code;
+                }
+
+                public MidiToken(MidiTokenType tokenType, double value)
+                {
+                    TokenType = tokenType;
+                    Value = value;
+                }
+
+                public MidiTokenType TokenType { set; get; }
+                public int Code { set; get; }
+                public double Value { set; get; }
+                public List<int> NoteGroup { set; get; }
+            }
+
+            internal class MidiParsingException : Exception
+            {
+                public int Index { set; get; }
+
+                public MidiParsingException(int index, string message) :
+                    base(message)
+                {
+                    Index = index;
+                }
+
+            }
+
+            internal class ReleaseInfo
+            {
+                public ReleaseInfo(int note, double millisecondsElapsed)
+                {
+                    Note = note;
+                    MillisecondsElapsed = millisecondsElapsed;
+                }
+
+                public int Note { set; get; }
+                public double MillisecondsElapsed { set; get; }
+            }
         }
+        
     }
 
-    public class SpeccyPercussionChannel : SpeccyInstrumentChannel
+    public class SpeccyPercussionChannel : SpeccyMIDIChannel
     {
 
         private new SpeccyMIDIInstrument Instrument;
-        
+
         public SpeccyPercussionChannel(MidiOut Output) : base(Output, 10)
         {
 
@@ -688,95 +747,56 @@ namespace SpeccyEngine
         public int Volume { get; set; }
     }
 
-    internal enum MidiTokenType
+    public enum SpeccyMIDIPercussion
     {
-        Null,
-        Tempo,
-        Octave,
-        Instrument,
-        Volume,
-        Rest,
-        Note,
-        Duration,
-        Length,
-        Unknown
+        BassDrum2 = 34,
+        BassDrum1,
+        SideStickRimshot,
+        SnareDrum1,
+        HandClap,
+        SnareDrum2,
+        LowTom2,
+        ClosedHiHat,
+        LowTom1,
+        PedalHiHat,
+        MidTom2,
+        OpenHiHat,
+        MidTom1,
+        HighTom2,
+        CrashCymbal1,
+        HighTom1,
+        RideCymbal1,
+        ChineseCymbal,
+        RideBell,
+        Tambourine,
+        SplashCymbal,
+        Cowbell,
+        CrashCymbal2,
+        VibraSlap,
+        RideCymbal2,
+        HighBongo,
+        LowBongo,
+        MuteHighConga,
+        OpenHighConga,
+        LowConga,
+        HighTimbale,
+        LowTimbale,
+        HighAgogô,
+        LowAgogô,
+        Cabasa,
+        Maracas,
+        ShortWhistle,
+        LongWhistle,
+        ShortGüiro,
+        LongGüiro,
+        Claves,
+        HighWoodBlock,
+        LowWoodBlock,
+        MuteCuíca,
+        OpenCuíca,
+        MuteTriangle,
+        OpenTriangle
     }
-
-    internal class MidiToken
-    {
-        public MidiToken(MidiTokenType tokenType)
-        {
-            TokenType = tokenType;
-        }
-
-        public MidiToken(MidiTokenType tokenType, int code)
-        {
-            TokenType = tokenType;
-            Code = code;
-        }
-
-        public MidiToken(MidiTokenType tokenType, double value)
-        {
-            TokenType = tokenType;
-            Value = value;
-        }
-
-        public MidiTokenType TokenType { set; get; }
-        public int Code { set; get; }
-        public double Value { set; get; }
-        public List<int> NoteGroup { set; get; }
-    }
-
-    //public enum SpeccyMIDIPercussion
-    //{
-    //    BassDrum2 = 34,
-    //    BassDrum1,
-    //    SideStickRimshot,
-    //    SnareDrum1,
-    //    HandClap,
-    //    SnareDrum2,
-    //    LowTom2,
-    //    ClosedHiHat,
-    //    LowTom1,
-    //    PedalHiHat,
-    //    MidTom2,
-    //    OpenHiHat,
-    //    MidTom1,
-    //    HighTom2,
-    //    CrashCymbal1,
-    //    HighTom1,
-    //    RideCymbal1,
-    //    ChineseCymbal,
-    //    RideBell,
-    //    Tambourine,
-    //    SplashCymbal,
-    //    Cowbell,
-    //    CrashCymbal2,
-    //    VibraSlap,
-    //    RideCymbal2,
-    //    HighBongo,
-    //    LowBongo,
-    //    MuteHighConga,
-    //    OpenHighConga,
-    //    LowConga,
-    //    HighTimbale,
-    //    LowTimbale,
-    //    HighAgogô,
-    //    LowAgogô,
-    //    Cabasa,
-    //    Maracas,
-    //    ShortWhistle,
-    //    LongWhistle,
-    //    ShortGüiro,
-    //    LongGüiro,
-    //    Claves,
-    //    HighWoodBlock,
-    //    LowWoodBlock,
-    //    MuteCuíca,
-    //    OpenCuíca,
-    //    MuteTriangle,
-    //    OpenTriangle
-    //}
 
     public enum SpeccyMIDIInstrument
     {
@@ -1042,27 +1062,4 @@ namespace SpeccyEngine
         G10,
     }
 
-    internal class MidiParsingException : Exception
-    {
-        public int Index { set; get; }
-
-        public MidiParsingException(int index, string message) :
-            base(message)
-        {
-            Index = index;
-        }
-
-    }
-
-    internal class ReleaseInfo
-    {
-        public ReleaseInfo(int note, double millisecondsElapsed)
-        {
-            Note = note;
-            MillisecondsElapsed = millisecondsElapsed;
-        }
-
-        public int Note { set; get; }
-        public double MillisecondsElapsed { set; get; }
-    }
 }

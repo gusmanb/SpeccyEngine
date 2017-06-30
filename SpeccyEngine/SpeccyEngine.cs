@@ -80,6 +80,7 @@ namespace SpeccyEngine
             engineThread = null;
         }
 
+        //TODO Mover delay FPS aquí
         private void Run(object state)
         {
             int cnt = 0;

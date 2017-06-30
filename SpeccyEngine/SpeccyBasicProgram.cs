@@ -21,7 +21,7 @@ namespace SpeccyEngine
 
         protected bool Over = false;
 
-        protected SpeccyInstrumentChannel[] Instruments { get { return ayPlayer.Instruments; } }
+        protected SpeccyMIDIChannel[] Instruments { get { return ayPlayer.Instruments; } }
         protected SpeccyPercussionChannel Percussion { get { return ayPlayer.Percussion; } }
 
         protected SpeccyColor[,,] Attribs { get { return Screen.Attributes; } }
