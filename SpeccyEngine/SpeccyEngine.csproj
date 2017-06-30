@@ -47,14 +47,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Sound\Petzold.Midi\MidiChannel.cs" />
-    <Compile Include="Sound\Petzold.Midi\MidiParsingException.cs" />
-    <Compile Include="Sound\Petzold.Midi\MidiStringPlayer.cs" />
-    <Compile Include="Sound\Petzold.Midi\MidiStringPlayerFailedEventArgs.cs" />
-    <Compile Include="Sound\Petzold.Midi\MidiStringPlayerFailedEventHandler.cs" />
-    <Compile Include="Sound\Petzold.Midi\MidiToken.cs" />
-    <Compile Include="Sound\Petzold.Midi\MidiTokenType.cs" />
-    <Compile Include="Sound\Petzold.Midi\ReleaseInfo.cs" />
     <Compile Include="Sound\SpeccyMIDI.cs" />
     <Compile Include="Sound\SpeccyBeeper.cs" />
     <Compile Include="SpeccyAnimation.cs" />

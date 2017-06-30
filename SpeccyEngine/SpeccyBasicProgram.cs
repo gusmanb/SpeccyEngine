@@ -345,14 +345,24 @@ namespace SpeccyEngine
             plotY = Y;
         }
         
-        protected void Play(string Tune)
+        protected void Play(int Channel, string Tune)
         {
-            ayPlayer.Play(Tune);
+            ayPlayer.Play(Tune, Channel);
         }
 
-        protected void PlayAsync(string Tune)
+        protected void PlayAsync(int Channel, string Tune)
         {
-            ayPlayer.PlayAsync(Tune);
+            ayPlayer.PlayAsync(Tune, Channel);
+        }
+
+        protected void PlayPercussion(string Tune)
+        {
+            ayPlayer.PlayPercussion(Tune);
+        }
+
+        protected void PlayPercussionAsync(string Tune)
+        {
+            ayPlayer.PlayPercussionAsync(Tune);
         }
 
         protected void BeepAsync(double Duration, int Pitch)
