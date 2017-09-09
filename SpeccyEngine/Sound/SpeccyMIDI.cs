@@ -515,7 +515,7 @@ namespace SpeccyEngine
 
                 char octaveChar;
 
-                if (noteIndex == noteLength)        // ie, no octave number so assume octave above middle C
+                if (noteIndex == noteLength)
                     octaveChar = currentOctave;
                 else
                 {
@@ -565,11 +565,9 @@ namespace SpeccyEngine
                             case 1:
                                 denominator = 16;
                                 break;
-
                             case 2:
                                 denominator = 16 / 1.5;
                                 break;
-
                             case 3:
                                 denominator = 8;
                                 break;

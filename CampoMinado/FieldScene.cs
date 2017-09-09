@@ -16,15 +16,15 @@ namespace CampoMinado
         FieldCell[,] field = new FieldCell[32, 24];
         static FieldSettings[] fields = new FieldSettings[]
         {
-            new FieldSettings{ Foreground = SpeccyColor.Black, Background = SpeccyColor.Yellow, LastScreen = true, MineCount = 64 },
-            new FieldSettings{ Foreground = SpeccyColor.Black, Background = SpeccyColor.Cyan, Damsel1X = 6, Damsel1Y = 6, Damsel2X = 25, Damsel2Y = 6, LastScreen = true, MineCount = 64 },
-            new FieldSettings{ Foreground = SpeccyColor.Black, Background = SpeccyColor.Green, Damsel1X = 6, Damsel1Y = 12, Damsel2X = 25, Damsel2Y = 12, LastScreen = true, MineCount = 64, ZapperProbability = 2, ZapperBombProbability = 300 },
-            new FieldSettings{ Foreground = SpeccyColor.White, Background = SpeccyColor.Magenta, Damsel1X = 6, Damsel1Y = 12, Damsel2X = 20, Damsel2Y = 12, LastScreen = true, MineCount = 78, ZapperProbability = 2, ZapperBombProbability = 300, LiveMineDelay = 500, LiveMineSpeed = 30 },
-            new FieldSettings{ Foreground = SpeccyColor.White, Background = SpeccyColor.Red, Damsel1X = 6, Damsel1Y = 8, Damsel2X = 20, Damsel2Y = 8, LastScreen = true, MineCount = 84, ZapperProbability = 2, ZapperBombProbability = 350, LiveMineDelay = 500, LiveMineSpeed = 30 },
-            new FieldSettings{ Foreground = SpeccyColor.White, Background = SpeccyColor.Blue, Damsel1X = 6, Damsel1Y = 4, Damsel2X = 20, Damsel2Y = 4, LastScreen = true, MineCount = 96, ZapperProbability = 2, ZapperBombProbability = 400, LiveMineDelay = 400, LiveMineSpeed = 25 },
-            new FieldSettings{ Foreground = SpeccyColor.White, Background = SpeccyColor.Black, Damsel1X = 6, Damsel1Y = 6, Damsel2X = 24, Damsel2Y = 6, LastScreen = true, MineCount = 48, LiveMineDelay = 250, LiveMineSpeed = 5 },
-            new FieldSettings{ Foreground = SpeccyColor.Black, Background = SpeccyColor.Yellow, Damsel1X = 6, Damsel1Y = 14, Damsel2X = 24, Damsel2Y = 14, LastScreen = true, GatesClosed = true, MineCount = 64, ZapperProbability = 2, ZapperBombProbability = 350 },
-            new FieldSettings{ Foreground = SpeccyColor.Black, Background = SpeccyColor.Cyan, LastScreen = false, GatesClosed = true, MineCount = 78 },
+            new FieldSettings{ Foreground = SpeccyColor.Black, Background = SpeccyColor.Yellow, LastScreen = false, MineCount = 64 },
+            new FieldSettings{ Foreground = SpeccyColor.Black, Background = SpeccyColor.Cyan, Damsel1X = 6, Damsel1Y = 6, Damsel2X = 25, Damsel2Y = 6, LastScreen = false, MineCount = 64 },
+            new FieldSettings{ Foreground = SpeccyColor.Black, Background = SpeccyColor.Green, Damsel1X = 6, Damsel1Y = 12, Damsel2X = 25, Damsel2Y = 12, LastScreen = false, MineCount = 64, ZapperProbability = 2, ZapperBombProbability = 300 },
+            new FieldSettings{ Foreground = SpeccyColor.White, Background = SpeccyColor.Magenta, Damsel1X = 6, Damsel1Y = 12, Damsel2X = 20, Damsel2Y = 12, LastScreen = false, MineCount = 78, ZapperProbability = 2, ZapperBombProbability = 300, LiveMineDelay = 500, LiveMineSpeed = 30 },
+            new FieldSettings{ Foreground = SpeccyColor.White, Background = SpeccyColor.Red, Damsel1X = 6, Damsel1Y = 8, Damsel2X = 20, Damsel2Y = 8, LastScreen = false, MineCount = 84, ZapperProbability = 2, ZapperBombProbability = 350, LiveMineDelay = 500, LiveMineSpeed = 30 },
+            new FieldSettings{ Foreground = SpeccyColor.White, Background = SpeccyColor.Blue, Damsel1X = 6, Damsel1Y = 4, Damsel2X = 20, Damsel2Y = 4, LastScreen = false, MineCount = 96, ZapperProbability = 2, ZapperBombProbability = 400, LiveMineDelay = 400, LiveMineSpeed = 25 },
+            new FieldSettings{ Foreground = SpeccyColor.White, Background = SpeccyColor.Black, Damsel1X = 6, Damsel1Y = 6, Damsel2X = 24, Damsel2Y = 6, LastScreen = false, MineCount = 48, LiveMineDelay = 250, LiveMineSpeed = 5 },
+            new FieldSettings{ Foreground = SpeccyColor.Black, Background = SpeccyColor.Yellow, Damsel1X = 6, Damsel1Y = 14, Damsel2X = 24, Damsel2Y = 14, LastScreen = false, GatesClosed = true, MineCount = 64, ZapperProbability = 2, ZapperBombProbability = 350 },
+            new FieldSettings{ Foreground = SpeccyColor.Black, Background = SpeccyColor.Cyan, LastScreen = true, GatesClosed = true, MineCount = 78 },
         };
 
         SpeccySprite bg;
@@ -273,9 +273,9 @@ namespace CampoMinado
 
             int framesForGates = currentField.GatesClosed ? 60 : 0;
 
-            int framesForMap = currentField.LastScreen ? 0 : 60;
+            int framesForMap = currentField.LastScreen ? 60 : 0;
 
-            SpeccyAnimation anim = new SpeccyAnimation((frames + 1) * frameLen + 1 + framesForDamsels + 45 + framesForField + framesForGates + framesForMap + 50);
+            SpeccyAnimation anim = new SpeccyAnimation((frames + 1) * frameLen + 1 + framesForDamsels + 45 + framesForField + framesForGates + framesForMap + 20);
 
             player.Visible = false;
 
@@ -646,16 +646,16 @@ namespace CampoMinado
         private void GeneratePlayer()
         {
             SpeccyFrame playerFrame = new SpeccyFrame(1, 1, new string[] { "@" }, 
-                currentField.LastScreen ? SpeccyColor.Black : currentField.Foreground, 
-                currentField.LastScreen ? SpeccyColor.White : currentField.Background);
+                !currentField.LastScreen ? SpeccyColor.Black : currentField.Foreground, 
+                !currentField.LastScreen ? SpeccyColor.White : currentField.Background);
 
             SpeccyFrame playerDamselFrame = new SpeccyFrame(1, 1, new string[] { "%" }, 
-                currentField.LastScreen ? SpeccyColor.Black : currentField.Foreground,
-                currentField.LastScreen ? SpeccyColor.White : currentField.Background);
+                !currentField.LastScreen ? SpeccyColor.Black : currentField.Foreground,
+                !currentField.LastScreen ? SpeccyColor.White : currentField.Background);
 
             SpeccyFrame playerExplodeFrame = new SpeccyFrame(1, 1, new string[] { "=" },
-                currentField.LastScreen ? SpeccyColor.Black : currentField.Foreground,
-                currentField.LastScreen ? SpeccyColor.White : currentField.Background);
+                !currentField.LastScreen ? SpeccyColor.Black : currentField.Foreground,
+                !currentField.LastScreen ? SpeccyColor.White : currentField.Background);
 
             player = new SpeccySprite(1, 1, fnt);
             player.AddFrame(playerFrame);
@@ -1301,7 +1301,7 @@ namespace CampoMinado
                     return;
                 }
 
-                if(currentField.LastScreen)
+                if(!currentField.LastScreen)
                     bg.Frame[player.X, player.Y].BackColor = SpeccyColor.White;
 
                 player.X = newCoordX;

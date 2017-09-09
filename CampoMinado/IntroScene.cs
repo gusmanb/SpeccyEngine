@@ -56,15 +56,15 @@ namespace CampoMinado
             
             PrintAt(5, 0, "EL DR. GUSMAN PRESENTA");
 
-            PlayPercussionAsync($"T280 V127 O3 (3 C C 5 b$ C g e$ g c R) 5 C D E$ D E$ C D C D b$ C b$ C g 7 C");
-            PlayAsync(0, $"T280 O4 I{((int)SpeccyMIDIInstrument.PizzicatoStrings).ToString()} (5 C b$ C g e$ g c R) 5 C D E$ D E$ C D C D b$ C b$ C g 7 C");
-            Pause(60);
-            Play(1, $"T280 O4 I{((int)SpeccyMIDIInstrument.ChoirAahs).ToString()} (5 C b$ C g e$ g c R) 5 C D E$ D E$ C D C D b$ C b$ C g 7 C");
+            //PlayPercussionAsync($"T280 V127 O3 (3 C C 5 b$ C g e$ g c R) 5 C D E$ D E$ C D C D b$ C b$ C g 7 C");
+            //PlayAsync(0, $"T280 O4 I{((int)SpeccyMIDIInstrument.PizzicatoStrings).ToString()} (5 C b$ C g e$ g c R) 5 C D E$ D E$ C D C D b$ C b$ C g 7 C");
+            //Pause(60);
+            //Play(1, $"T280 O4 I{((int)SpeccyMIDIInstrument.ChoirAahs).ToString()} (5 C b$ C g e$ g c R) 5 C D E$ D E$ C D C D b$ C b$ C g 7 C");
 
-            PlayPercussionAsync($"T280 V127 O3 (3 C C 5 b$ C g e$ g c R) 5 C D E$ D E$ C D C D b$ C b$ C D 7 E$");
-            PlayAsync(0, $"T280 O5 I{((int)SpeccyMIDIInstrument.PizzicatoStrings).ToString()} (5 C b$ C g e$ g c R) C D E$ D E$ C D C D b$ C b$ C D 7 E$");
-            Pause(60);
-            Play(1, $"T280 O5 I{((int)SpeccyMIDIInstrument.ChoirAahs).ToString()} (5 C b$ C g e$ g c R) C D E$ D E$ C D C D b$ C b$ C D 7 E$");
+            //PlayPercussionAsync($"T280 V127 O3 (3 C C 5 b$ C g e$ g c R) 5 C D E$ D E$ C D C D b$ C b$ C D 7 E$");
+            //PlayAsync(0, $"T280 O5 I{((int)SpeccyMIDIInstrument.PizzicatoStrings).ToString()} (5 C b$ C g e$ g c R) C D E$ D E$ C D C D b$ C b$ C D 7 E$");
+            //Pause(60);
+            //Play(1, $"T280 O5 I{((int)SpeccyMIDIInstrument.ChoirAahs).ToString()} (5 C b$ C g e$ g c R) C D E$ D E$ C D C D b$ C b$ C D 7 E$");
             
             for (int y = 2; y < 19; y++)
             {
@@ -82,7 +82,7 @@ namespace CampoMinado
             Beep(0.2, 20);
             Pause(10);
             Beep(0.1, 26);
-            Beep(0.1, 26);
+            Beep(0.1, 26);                                                                                           
             Beep(0.1, 18);
 
             PrintAt(0, 0, "PRUEBA TU ESTRATEGIA Y HABILIDAD");

@@ -29,5 +29,15 @@ namespace SpeccyProgramTemplate
 
             eng.Start();
         }
+
+        private void MainWindow_Activated(object sender, EventArgs e)
+        {
+            eng.DisableInput = false;
+        }
+
+        private void MainWindow_Deactivate(object sender, EventArgs e)
+        {
+            eng.DisableInput = true;
+        }
     }
 }
