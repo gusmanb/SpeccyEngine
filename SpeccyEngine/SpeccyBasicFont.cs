@@ -32,7 +32,7 @@ namespace SpeccyEngine
                 }
             }
 
-            Font fnt = new Font("ZX Spectrum", 8, GraphicsUnit.Pixel);
+            Font fnt = new Font(pfc.Families.First(), 8, GraphicsUnit.Pixel);
             FillFromSystemFont(fnt);               
             
         }
