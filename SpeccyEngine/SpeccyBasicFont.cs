@@ -17,8 +17,19 @@ namespace SpeccyEngine
             if (pfc == null)
             {
                 pfc = new PrivateFontCollection();
-                typeof(SpeccyBasicFont).Assembly.GetManifestResourceStream("SpeccyEngine.zxsp.ttf");
+                var fontStream = typeof(SpeccyBasicFont).Assembly.GetManifestResourceStream("SpeccyEngine.zxsp.ttf");
 
+                byte[] fontdata = new byte[fontStream.Length];
+                fontStream.Read(fontdata, 0, (int)fontStream.Length);
+                fontStream.Close();
+
+                unsafe
+                {
+                    fixed (byte* pFontData = fontdata)
+                    {
+                        pfc.AddMemoryFont((System.IntPtr)pFontData, fontdata.Length);
+                    }
+                }
             }
 
             Font fnt = new Font("ZX Spectrum", 8, GraphicsUnit.Pixel);
